@@ -75,7 +75,7 @@ prot_list = read_list(args.file_list)
 
 # %%
 # pretrained_model_generator, input_encoder = load_pretrained_model('/mnt/nvme/home/bbabatun/proteinbert_models/epoch_92400_sample_23500000.pkl')
-print(prot_list)
+# print(prot_list)
 
 # %%
 ##  @brief  :   Iterate through Files in Dataset & Generate Embeddings
@@ -83,39 +83,39 @@ for prot_path in tqdm(prot_list):
 
     prot_name = prot_path.split('/')[-1].split('.')[0]
     save_path = "/mnt/nvme/home/bbabatun/IDL/PROJECT/SPOT-1D-LM/inputs/" + prot_name + "_pb.npy"
-    print(save_path)
+    # print(save_path)
 
     ## Check no embedding exists
-    if not os.path.isfile(save_path):
-        try:  
-            ## Extract Protein Sequence as a String & Process through Model
-            path = "/mnt/nvme/home/bbabatun/IDL/PROJECT/SPOT-1D-LM/spot_1d_lm/labels"
-            labels = np.load(os.path.join(path, prot_name + ".npy"), allow_pickle=True)
-            # seq = read_fasta_file(prot_path)
-            seq = ''.join(labels[:, 3])
+    # if not os.path.isfile(save_path):
+    #     try:  
+    ## Extract Protein Sequence as a String & Process through Model
+    path = "/mnt/nvme/home/bbabatun/IDL/PROJECT/SPOT-1D-LM/spot_1d_lm/labels"
+    labels = np.load(os.path.join(path, prot_name + ".npy"), allow_pickle=True)
+    # seq = read_fasta_file(prot_path)
+    seq = ''.join(labels[:, 3])
 
-            ## Get raw sequence length
-            seq_len = len(seq)
-        
-            ## Replace Us with Xs to normalise encoding over models
-            seq = seq.replace("U", "X")
+    ## Get raw sequence length
+    seq_len = len(seq)
 
-            ## Encode Input sequence
-            encoded_x = input_encoder.encode_X([seq], MAX_SEQ_LEN)
+    ## Replace Us with Xs to normalise encoding over models
+    seq = seq.replace("U", "X")
 
-            ## Obtain local & global embeddings
-            local_representations, global_representations = model.predict(encoded_x)
-            ##local_representations.to(args.file_list)
+    ## Encode Input sequence
+    encoded_x = input_encoder.encode_X([seq], MAX_SEQ_LEN)
 
-            ## Remove padding, end and start tokens
-            save_arr = local_representations[0,1:seq_len,:]
+    ## Obtain local & global embeddings
+    local_representations, global_representations = model.predict(encoded_x)
+    ##local_representations.to(args.file_list)
 
-            ## Save np file
-            np.save(save_path, save_arr)
-            print(save_path)
-        except:
-            #   print("No file available for: ",  prot_name, prot_path)
-              print("No file available for: ",  prot_name, path)
+    ## Remove padding, end and start tokens
+    save_arr = local_representations[0,1:seq_len+1,:]
+
+    ## Save np file
+    np.save(save_path, save_arr)
+    # print(save_path)
+        # except:
+        #     #   print("No file available for: ",  prot_name, prot_path)
+        #       print("No file available for: ",  prot_name, path)
 
 print(" ProteinBERT embeddings generation completed ... ")
 
